@@ -1,18 +1,25 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for, redirect, flash, request
+# import packages for chart
+from pandas_datareader import data
+from datetime import datetime, timedelta
+from bokeh.plotting import figure, show, output_file
+from bokeh.embed import components
+from bokeh.resources import CDN
 
 app = Flask(__name__)
 
-@app.route("/")
+@app.route("/", methods = ["GET"])
 def home():
-	# import packages for chart
-	from pandas_datareader import data
-	from datetime import datetime, timedelta
-	from bokeh.plotting import figure, show, output_file
-	from bokeh.embed import components
-	from bokeh.resources import CDN
+	if request.values:
+		return redirect(url_for("viz", symbol = request.values["symbol"]))
+	else:
+		return render_template("home.html")
+
+@app.route("/<symbol>")
+def viz(symbol):
 
 	# import the data
-	symbol = "GOOG"
+	symbol = symbol.upper()
 	end = datetime.today()
 	start = end - timedelta(days = 30)
 	df = data.DataReader(name  = symbol, data_source = "yahoo", start = start, end = end)
@@ -59,11 +66,18 @@ def home():
 	cdn_css = CDN.css_files[0]
 
 	# render html
-	return render_template("home.html", script1 = script1, div1 = div1, cdn_css = cdn_css, cdn_js = cdn_js)
+	return render_template("viz.html", script1 = script1, div1 = div1, cdn_css = cdn_css, cdn_js = cdn_js)
 
 @app.route("/about")
 def about():
 	return render_template("about.html")
 
+# reload when the application breaks - usually when the Yahoo API call fails
+@app.errorhandler(500)
+def pageNotFound(error):
+	flash("An error has occured with Yahoo's API. If the symbol you entered is correct, please try again.")
+	return redirect(url_for("home"))
+
 if __name__ == "__main__":
-	app.run(debug = True)
+	app.secret_key = 'super secret key'
+	app.run(debug = False)

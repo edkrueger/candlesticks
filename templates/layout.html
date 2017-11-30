@@ -4,10 +4,21 @@
 	</head>
 	<body>
 		<ul class = "nav">
-			<li class = "logo">Google Candlesticks Chart</li>
+			<li class = "logo">Candlesticks Chart Maker</li>
 			<li><a href="{{ url_for('about') }}">About</a></li>
-			<li><a class="active" href="{{ url_for('home') }}">Chart</a></li>
+			<li><a class="active" href="{{ url_for('home') }}">Home</a></li>
 		</ul>
+
+		{% with messages = get_flashed_messages() %}
+  			{% if messages %}
+    			<ul class="flashes" style="color:red;">
+	    			{% for message in messages %}
+	      				<li>{{ message }}</li>
+	    			{% endfor %}
+	    		</ul>
+  			{% endif %}
+		{% endwith %}
+
 		<div class = "container">
 			{%block content%}
 			{%endblock%}
